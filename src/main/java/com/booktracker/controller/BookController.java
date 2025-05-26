@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.booktracker.model.Book;
@@ -22,13 +23,49 @@ public class BookController {
     @Autowired
     private BookService bookService;
     
-    // Ana sayfa - Tüm kitapları listele
+    // REST API endpoint'leri BookRestController sınıfına taşındı
+    
+    // Ana sayfa - Tüm kitapları listele (filtreleme seçenekleriyle)
     @GetMapping
-    public String listBooks(Model model) {
-        List<Book> books = bookService.getAllBooks();
+    public String listBooks(
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String author,
+            @RequestParam(required = false) String genre,
+            @RequestParam(required = false) Integer publicationYear,
+            @RequestParam(required = false) Integer minPages,
+            @RequestParam(required = false) Integer maxPages,
+            Model model) {
+        
+        // Filtreleme parametrelerini modele ekle (form değerlerini korumak için)
+        model.addAttribute("filterTitle", title);
+        model.addAttribute("filterAuthor", author);
+        model.addAttribute("filterGenre", genre);
+        model.addAttribute("filterPublicationYear", publicationYear);
+        model.addAttribute("filterMinPages", minPages);
+        model.addAttribute("filterMaxPages", maxPages);
+        
+        // Filtreleme işlemi
+        List<Book> books;
+        if (title != null || author != null || genre != null || 
+            publicationYear != null || minPages != null || maxPages != null) {
+            // En az bir filtre parametresi varsa filtreleme yap
+            books = bookService.findBooksByFilters(title, author, genre, publicationYear, minPages, maxPages);
+            model.addAttribute("filterActive", true);
+        } else {
+            // Filtre yoksa tüm kitapları getir
+            books = bookService.getAllBooks();
+            model.addAttribute("filterActive", false);
+        }
+        
         model.addAttribute("books", books);
         model.addAttribute("book", new Book()); // Yeni kitap formu için boş nesne
         return "index";
+    }
+    
+    // Filtreleri temizle
+    @GetMapping("/clear-filters")
+    public String clearFilters() {
+        return "redirect:/";
     }
     
     // Kitap kaydetme (ekleme veya güncelleme)
