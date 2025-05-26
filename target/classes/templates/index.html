@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kitap Takip Uygulaması</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="mb-0">📚 Kitap Takip Uygulaması</h3>
+                    </div>
+                    <div class="card-body">
+                        <!-- Başarı mesajı -->
+                        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                            <span th:text="${success}"></span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        
+                        <!-- Kitap Ekleme/Düzenleme Formu -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0" th:text="${editMode} ? 'Kitap Düzenle' : 'Yeni Kitap Ekle'"></h5>
+                            </div>
+                            <div class="card-body">
+                                <form th:action="@{/save}" th:object="${book}" method="post">
+                                    <!-- Gizli ID alanı (düzenleme için) -->
+                                    <input type="hidden" th:field="*{id}">
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="title" class="form-label">Kitap Adı</label>
+                                            <input type="text" class="form-control" id="title" th:field="*{title}" required>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="author" class="form-label">Yazar</label>
+                                            <input type="text" class="form-control" id="author" th:field="*{author}" required>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-4 mb-3">
+                                            <label for="isbn" class="form-label">ISBN</label>
+                                            <input type="text" class="form-control" id="isbn" th:field="*{isbn}">
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label for="pageCount" class="form-label">Sayfa Sayısı</label>
+                                            <input type="number" class="form-control" id="pageCount" th:field="*{pageCount}" min="1">
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label for="publicationYear" class="form-label">Yayın Yılı</label>
+                                            <input type="number" class="form-control" id="publicationYear" th:field="*{publicationYear}" min="1000" max="2099">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="publisher" class="form-label">Yayınevi</label>
+                                            <input type="text" class="form-control" id="publisher" th:field="*{publisher}">
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="genre" class="form-label">Tür</label>
+                                            <input type="text" class="form-control" id="genre" th:field="*{genre}">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="description" class="form-label">Açıklama</label>
+                                        <textarea class="form-control" id="description" th:field="*{description}" rows="3"></textarea>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-between">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="bi bi-save"></i> 
+                                            <span th:text="${editMode} ? 'Güncelle' : 'Kaydet'"></span>
+                                        </button>
+                                        <a th:if="${editMode}" th:href="@{/}" class="btn btn-secondary">
+                                            <i class="bi bi-x-circle"></i> İptal
+                                        </a>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        
+                        <!-- Kitap Listesi -->
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0">Kitap Listesi</h5>
+                            </div>
+                            <div class="card-body">
+                                <div th:if="${#lists.isEmpty(books)}" class="alert alert-info">
+                                    Henüz kitap eklenmemiş. Yukarıdaki formu kullanarak yeni kitap ekleyebilirsiniz.
+                                </div>
+                                
+                                <div th:unless="${#lists.isEmpty(books)}" class="table-responsive">
+                                    <table class="table table-striped table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Kitap Adı</th>
+                                                <th>Yazar</th>
+                                                <th>Tür</th>
+                                                <th>Yayın Yılı</th>
+                                                <th>Sayfa</th>
+                                                <th>İşlemler</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:each="book : ${books}">
+                                                <td th:text="${book.title}"></td>
+                                                <td th:text="${book.author}"></td>
+                                                <td th:text="${book.genre}"></td>
+                                                <td th:text="${book.publicationYear}"></td>
+                                                <td th:text="${book.pageCount}"></td>
+                                                <td>
+                                                    <div class="btn-group" role="group">
+                                                        <a th:href="@{/edit/{id}(id=${book.id})}" class="btn btn-sm btn-warning">
+                                                            <i class="bi bi-pencil-square"></i> Düzenle
+                                                        </a>
+                                                        <a th:href="@{/delete/{id}(id=${book.id})}" class="btn btn-sm btn-danger" 
+                                                           onclick="return confirm('Bu kitabı silmek istediğinize emin misiniz?')">
+                                                            <i class="bi bi-trash"></i> Sil
+                                                        </a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="bg-light py-3 mt-5">
+        <div class="container text-center">
+            <p class="mb-0">📚 Kitap Takip Uygulaması &copy; 2025</p>
+        </div>
+    </footer>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
