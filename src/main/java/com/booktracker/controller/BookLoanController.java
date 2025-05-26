@@ -1,9 +1,12 @@
 package com.booktracker.controller;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -23,6 +26,21 @@ public class BookLoanController {
     
     @Autowired
     private BookService bookService;
+    
+    // Ödünç verilen kitapları filtreleme
+    @GetMapping("/filter")
+    public String filterBookLoans(
+            @RequestParam(value = "bookTitle", required = false) String bookTitle,
+            @RequestParam(value = "borrowerName", required = false) String borrowerName,
+            Model model) {
+        
+        List<BookLoan> filteredLoans = bookLoanService.getBookLoansByBookTitleAndBorrowerName(bookTitle, borrowerName);
+        model.addAttribute("bookLoans", filteredLoans);
+        model.addAttribute("filterBookTitle", bookTitle);
+        model.addAttribute("filterBorrowerName", borrowerName);
+        
+        return "redirect:/?tab=loans";
+    }
     
     // Kitap ödünç verme işlemi
     @PostMapping("/borrow")

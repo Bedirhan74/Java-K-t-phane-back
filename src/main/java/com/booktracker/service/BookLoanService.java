@@ -52,4 +52,37 @@ public class BookLoanService {
         LocalDate sevenDaysLater = today.plusDays(7);
         return bookLoanRepository.findByReturnDateBetween(today, sevenDaysLater);
     }
+    
+    // Kitap adına göre ödünç verme kayıtlarını getir
+    public List<BookLoan> getBookLoansByBookTitle(String bookTitle) {
+        if (bookTitle == null || bookTitle.isEmpty()) {
+            return getAllBookLoans();
+        }
+        return bookLoanRepository.findByBookTitleContainingIgnoreCase(bookTitle);
+    }
+    
+    // Ödünç alan kişi adına göre ödünç verme kayıtlarını getir
+    public List<BookLoan> getBookLoansByBorrowerName(String borrowerName) {
+        if (borrowerName == null || borrowerName.isEmpty()) {
+            return getAllBookLoans();
+        }
+        return bookLoanRepository.findByBorrowerNameContainingIgnoreCase(borrowerName);
+    }
+    
+    // Kitap adı ve ödünç alan kişi adına göre ödünç verme kayıtlarını getir
+    public List<BookLoan> getBookLoansByBookTitleAndBorrowerName(String bookTitle, String borrowerName) {
+        if ((bookTitle == null || bookTitle.isEmpty()) && (borrowerName == null || borrowerName.isEmpty())) {
+            return getAllBookLoans();
+        }
+        
+        if (bookTitle == null || bookTitle.isEmpty()) {
+            return getBookLoansByBorrowerName(borrowerName);
+        }
+        
+        if (borrowerName == null || borrowerName.isEmpty()) {
+            return getBookLoansByBookTitle(bookTitle);
+        }
+        
+        return bookLoanRepository.findByBookTitleContainingIgnoreCaseAndBorrowerNameContainingIgnoreCase(bookTitle, borrowerName);
+    }
 }

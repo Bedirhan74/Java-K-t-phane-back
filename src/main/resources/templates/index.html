@@ -187,12 +187,53 @@
                         
                         <!-- Ödünç Verilen Kitaplar Tablosu -->
                         <div class="card mt-4">
-                            <div class="card-header bg-light">
+                            <div class="card-header bg-light d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0">Ödünç Verilen Kitaplar</h5>
+                                <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#loanFilterCollapse" aria-expanded="false" aria-controls="loanFilterCollapse">
+                                    <i class="bi bi-funnel"></i> Filtrele
+                                </button>
                             </div>
+                            
+                            <!-- Ödünç Verilen Kitaplar Filtreleme Formu -->
+                            <div class="collapse" id="loanFilterCollapse">
+                                <div class="card-body border-bottom">
+                                    <form th:action="@{/}" method="get" class="row g-3">
+                                        <input type="hidden" name="tab" value="loans" />
+                                        
+                                        <div class="col-md-5">
+                                            <label for="bookTitle" class="form-label">Kitap Adı</label>
+                                            <input type="text" class="form-control" id="bookTitle" name="bookTitle" th:value="${filterBookTitle}" placeholder="Kitap adına göre ara...">
+                                        </div>
+                                        
+                                        <div class="col-md-5">
+                                            <label for="borrowerName" class="form-label">Ödünç Alan Kişi</label>
+                                            <input type="text" class="form-control" id="borrowerName" name="borrowerName" th:value="${filterBorrowerName}" placeholder="Ödünç alan kişi adına göre ara...">
+                                        </div>
+                                        
+                                        <div class="col-md-2 d-flex align-items-end">
+                                            <div class="d-grid gap-2 w-100">
+                                                <button type="submit" class="btn btn-primary">
+                                                    <i class="bi bi-search"></i> Ara
+                                                </button>
+                                                <a th:href="@{/(tab='loans')}" class="btn btn-outline-secondary">
+                                                    <i class="bi bi-x-circle"></i> Temizle
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            
                             <div class="card-body">
+                                <!-- Filtre aktif mesajı -->
+                                <div th:if="${loanFilterActive}" class="alert alert-info alert-dismissible fade show" role="alert">
+                                    <i class="bi bi-funnel-fill me-2"></i> Filtreleme aktif
+                                    <a th:href="@{/(tab='loans')}" class="btn-close" aria-label="Temizle"></a>
+                                </div>
+                                
                                 <div th:if="${#lists.isEmpty(bookLoans)}" class="alert alert-info">
-                                    Henüz ödünç verilen kitap bulunmamaktadır.
+                                    <span th:if="${loanFilterActive}">Arama kriterlerine uygun ödünç verilen kitap bulunamadı.</span>
+                                    <span th:unless="${loanFilterActive}">Henüz ödünç verilen kitap bulunmamaktadır.</span>
                                 </div>
                                 
                                 <div th:unless="${#lists.isEmpty(bookLoans)}" class="table-responsive">

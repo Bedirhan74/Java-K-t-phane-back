@@ -39,9 +39,12 @@ public class BookController {
             @RequestParam(required = false) Integer publicationYear,
             @RequestParam(required = false) Integer minPages,
             @RequestParam(required = false) Integer maxPages,
+            @RequestParam(required = false) String bookTitle,
+            @RequestParam(required = false) String borrowerName,
+            @RequestParam(required = false, defaultValue = "books") String tab,
             Model model) {
         
-        // Filtreleme parametrelerini modele ekle (form değerlerini korumak için)
+        // Kitap filtreleme parametrelerini modele ekle (form değerlerini korumak için)
         model.addAttribute("filterTitle", title);
         model.addAttribute("filterAuthor", author);
         model.addAttribute("filterGenre", genre);
@@ -49,7 +52,12 @@ public class BookController {
         model.addAttribute("filterMinPages", minPages);
         model.addAttribute("filterMaxPages", maxPages);
         
-        // Filtreleme işlemi
+        // Ödünç verilen kitaplar için filtreleme parametrelerini modele ekle
+        model.addAttribute("filterBookTitle", bookTitle);
+        model.addAttribute("filterBorrowerName", borrowerName);
+        model.addAttribute("activeTab", tab); // Aktif sekme (books veya loans)
+        
+        // Kitap filtreleme işlemi
         List<Book> books;
         if (title != null || author != null || genre != null || 
             publicationYear != null || minPages != null || maxPages != null) {
@@ -62,8 +70,17 @@ public class BookController {
             model.addAttribute("filterActive", false);
         }
         
-        // Ödünç verilen kitapların listesini al
-        List<BookLoan> bookLoans = bookLoanService.getAllBookLoans();
+        // Ödünç verilen kitapların listesini al (filtreleme ile)
+        List<BookLoan> bookLoans;
+        if (bookTitle != null || borrowerName != null) {
+            // Filtreleme yap
+            bookLoans = bookLoanService.getBookLoansByBookTitleAndBorrowerName(bookTitle, borrowerName);
+            model.addAttribute("loanFilterActive", true);
+        } else {
+            // Filtre yoksa tüm ödünç kayıtlarını getir
+            bookLoans = bookLoanService.getAllBookLoans();
+            model.addAttribute("loanFilterActive", false);
+        }
         
         model.addAttribute("books", books);
         model.addAttribute("book", new Book()); // Yeni kitap formu için boş nesne

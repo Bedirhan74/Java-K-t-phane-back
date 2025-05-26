@@ -28,4 +28,10 @@ public interface BookLoanRepository extends MongoRepository<BookLoan, String> {
     
     // Ödünç alanın telefon numarasına göre arama
     List<BookLoan> findByBorrowerPhoneContaining(String phone);
+    
+    // Kitap adına göre arama
+    List<BookLoan> findByBookTitleContainingIgnoreCase(String bookTitle);
+    
+    // Kitap adı ve ödünç alan kişi adına göre arama
+    List<BookLoan> findByBookTitleContainingIgnoreCaseAndBorrowerNameContainingIgnoreCase(String bookTitle, String borrowerName);
 }
