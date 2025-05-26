@@ -1,5 +1,5 @@
+com\booktracker\controller\BookController.class
 com\booktracker\repository\BookRepository.class
 com\booktracker\BookTrackerApplication.class
 com\booktracker\model\Book.class
 com\booktracker\service\BookService.class
-com\booktracker\controller\BookController.class

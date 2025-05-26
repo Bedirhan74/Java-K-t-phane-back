@@ -22,6 +22,10 @@
                             <span th:text="${success}"></span>
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
+                        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <span th:text="${error}"></span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
                         
                         <!-- Kitap Ekleme/Düzenleme Formu -->
                         <div class="card mb-4">
@@ -161,7 +165,7 @@
                                                 <td th:text="${book.publicationYear}"></td>
                                                 <td th:text="${book.pageCount}"></td>
                                                 <td>
-                                                    <div class="btn-group" role="group">
+                                                    <div class="d-flex justify-content-end gap-2" role="group">
                                                         <a th:href="@{/edit/{id}(id=${book.id})}" class="btn btn-sm btn-warning" onclick="event.stopPropagation();">
                                                             <i class="bi bi-pencil-square"></i> Düzenle
                                                         </a>
@@ -169,7 +173,52 @@
                                                            onclick="event.stopPropagation(); return confirm('Bu kitabı silmek istediğinize emin misiniz?')">
                                                             <i class="bi bi-trash"></i> Sil
                                                         </a>
+                                                        <button type="button" class="btn btn-sm btn-success borrow-btn" th:attr="data-id=${book.id}, data-title=${book.title}" onclick="event.stopPropagation();">
+                                                            <i class="bi bi-box-arrow-right"></i> Ödünç Ver
+                                                        </button>
                                                     </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Ödünç Verilen Kitaplar Tablosu -->
+                        <div class="card mt-4">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0">Ödünç Verilen Kitaplar</h5>
+                            </div>
+                            <div class="card-body">
+                                <div th:if="${#lists.isEmpty(bookLoans)}" class="alert alert-info">
+                                    Henüz ödünç verilen kitap bulunmamaktadır.
+                                </div>
+                                
+                                <div th:unless="${#lists.isEmpty(bookLoans)}" class="table-responsive">
+                                    <table class="table table-striped table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Kitap Adı</th>
+                                                <th>Ödünç Alan</th>
+                                                <th>Telefon</th>
+                                                <th>Getirme Tarihi</th>
+                                                <th>İşlem</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:each="loan : ${bookLoans}" th:class="${loan.isOverdue()} ? 'table-danger' : (${loan.getDaysUntilReturn() <= 7 && loan.getDaysUntilReturn() >= 0} ? 'table-warning' : '')">
+                                                <td th:text="${loan.bookTitle}"></td>
+                                                <td th:text="${loan.borrowerName + ' ' + loan.borrowerSurname}"></td>
+                                                <td th:text="${loan.borrowerPhone}"></td>
+                                                <td th:text="${#temporals.format(loan.returnDate, 'dd.MM.yyyy')}"></td>
+                                                <td>
+                                                    <form th:action="@{/loans/return}" method="post" style="display: inline;">
+                                                        <input type="hidden" name="loanId" th:value="${loan.id}" />
+                                                        <button type="submit" class="btn btn-sm btn-primary" onclick="return confirm('İade işlemini onaylayınız.')">
+                                                            <i class="bi bi-box-arrow-in-left"></i> İade Et
+                                                        </button>
+                                                    </form>
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -190,6 +239,54 @@
     </footer>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Ödünç Verme Modal -->
+    <div class="modal fade" id="borrowBookModal" tabindex="-1" aria-labelledby="borrowBookModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="borrowBookModalLabel">Kitap Ödünç Ver</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Kapat"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="borrowForm" th:action="@{/loans/borrow}" method="post">
+                        <input type="hidden" id="bookId" name="bookId" value="">
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Kitap Adı:</label>
+                            <p id="bookTitleDisplay" class="form-control-plaintext fw-bold"></p>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="borrowerName" class="form-label">Ödünç Alanın Adı</label>
+                            <input type="text" class="form-control" id="borrowerName" name="borrowerName" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="borrowerSurname" class="form-label">Ödünç Alanın Soyadı</label>
+                            <input type="text" class="form-control" id="borrowerSurname" name="borrowerSurname" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="borrowerPhone" class="form-label">Ödünç Alanın Telefonu</label>
+                            <input type="tel" class="form-control" id="borrowerPhone" name="borrowerPhone" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="returnDate" class="form-label">Getirme Tarihi</label>
+                            <input type="date" class="form-control" id="returnDate" name="returnDate" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Vazgeç</button>
+                    <button type="button" class="btn btn-success" onclick="document.getElementById('borrowForm').submit();">
+                        <i class="bi bi-box-arrow-right"></i> Ödünç Ver
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
     
     <!-- Kitap Detay Modal -->
     <div class="modal fade" id="bookDetailModal" tabindex="-1" aria-labelledby="bookDetailModalLabel" aria-hidden="true">
@@ -295,6 +392,39 @@
                         alert('Kitap detayları yüklenirken bir hata oluştu.');
                     });
             }
+            
+            // Bugünün tarihini al ve minimum tarih olarak ayarla
+            const returnDateInput = document.getElementById('returnDate');
+            if (returnDateInput) {
+                const today = new Date();
+                const yyyy = today.getFullYear();
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const dd = String(today.getDate()).padStart(2, '0');
+                const todayStr = `${yyyy}-${mm}-${dd}`;
+                returnDateInput.setAttribute('min', todayStr);
+                returnDateInput.value = todayStr;
+            }
+        });
+        
+        // Ödünç verme modalını gösteren fonksiyon
+        function showBorrowModal(bookId, bookTitle) {
+            document.getElementById('bookId').value = bookId;
+            document.getElementById('bookTitleDisplay').textContent = bookTitle;
+            
+            const borrowBookModal = new bootstrap.Modal(document.getElementById('borrowBookModal'));
+            borrowBookModal.show();
+        }
+        
+        // Ödünç verme butonlarına tıklama olayı ekle
+        document.addEventListener('DOMContentLoaded', function() {
+            const borrowButtons = document.querySelectorAll('.borrow-btn');
+            borrowButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const bookId = this.getAttribute('data-id');
+                    const bookTitle = this.getAttribute('data-title');
+                    showBorrowModal(bookId, bookTitle);
+                });
+            });
         });
     </script>
 </body>

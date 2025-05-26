@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.booktracker.model.Book;
+import com.booktracker.model.BookLoan;
+import com.booktracker.service.BookLoanService;
 import com.booktracker.service.BookService;
 
 @Controller
@@ -22,6 +24,9 @@ public class BookController {
 
     @Autowired
     private BookService bookService;
+    
+    @Autowired
+    private BookLoanService bookLoanService;
     
     // REST API endpoint'leri BookRestController sınıfına taşındı
     
@@ -57,8 +62,12 @@ public class BookController {
             model.addAttribute("filterActive", false);
         }
         
+        // Ödünç verilen kitapların listesini al
+        List<BookLoan> bookLoans = bookLoanService.getAllBookLoans();
+        
         model.addAttribute("books", books);
         model.addAttribute("book", new Book()); // Yeni kitap formu için boş nesne
+        model.addAttribute("bookLoans", bookLoans); // Ödünç verilen kitaplar listesi
         return "index";
     }
     
