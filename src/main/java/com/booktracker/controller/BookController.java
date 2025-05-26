@@ -34,6 +34,11 @@ public class BookController {
     // Kitap kaydetme (ekleme veya güncelleme)
     @PostMapping("/save")
     public String saveBook(@ModelAttribute Book book, RedirectAttributes redirectAttributes) {
+        // Eğer id boş string ise null olarak ayarla (yeni kayıt için)
+        if (book.getId() != null && book.getId().trim().isEmpty()) {
+            book.setId(null);
+        }
+        
         bookService.saveBook(book);
         redirectAttributes.addFlashAttribute("success", 
             book.getId() == null ? "Kitap başarıyla eklendi." : "Kitap başarıyla güncellendi.");
